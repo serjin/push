@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할 일 목록</title>
+  <style>
+    body { font-family: system-ui, "Malgun Gothic", sans-serif; background: #f5f5f7; color: #222; margin: 0; padding: 24px 16px; }
+    main { max-width: 560px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; color: #1f2a5c; border-bottom: 3px solid #1f2a5c; padding-bottom: 8px; }
+    ul { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+    li { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 8px; }
+    .title { font-size: 1.1rem; font-weight: 600; color: #bbb; }
+    .meta { font-size: .85rem; color: #ccc; }
+    .done .title { color: #1a1a1a; }
+    .done .meta { color: #555; }
+    .status { color: #666; }
+    .error { color: #c00; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="index.html">← 처음으로</a></p>
+    <h1>test_todos 목록</h1>
+    <p id="status" class="status">불러오는 중...</p>
+    <ul id="list"></ul>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://qypvkewmffgcdmeayirq.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_TZmPP0r0ma1zmt5XsroPBw_Lf491Ww2';
+
+    async function loadTodos() {
+      const status = document.getElementById('status');
+      const list = document.getElementById('list');
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/test_todos?select=*`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const todos = await res.json();
+
+        if (todos.length === 0) {
+          status.textContent = '할 일이 없습니다.';
+          return;
+        }
+        status.textContent = `총 ${todos.length}개`;
+
+        for (const todo of todos) {
+          const li = document.createElement('li');
+          if (todo.done) li.classList.add('done');
+
+          const title = document.createElement('span');
+          title.className = 'title';
+          title.textContent = todo.title;
+
+          const meta = document.createElement('span');
+          meta.className = 'meta';
+          meta.textContent = `수량 ${todo.amount ?? '-'} · ${todo.date ?? '날짜 없음'}`;
+
+          li.append(title, meta);
+          list.append(li);
+        }
+      } catch (err) {
+        status.textContent = `데이터를 불러오지 못했습니다: ${err.message}`;
+        status.className = 'error';
+      }
+    }
+
+    loadTodos();
+  </script>
+</body>
+</html>
